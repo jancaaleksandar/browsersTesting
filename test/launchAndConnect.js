@@ -1,10 +1,13 @@
 import execPuppeteer from "./execPuppeteer.js";
+import "dotenv/config";
+
+const apiKeyEnv = process.env.NST_API_KEY;
 // LaunchExistBrowser: Connect to or start an existing browser
 // You need to create the corresponding profile in advance
 // Support custom config
 async function launchAndConnectToBrowser(profileId) {
   const host = "localhost:8848";
-  const apiKey = "66ef1444-c2c7-4841-8365-aa4bbfedd502";
+  const apiKey = apiKeyEnv;
   const config = {
     headless: true, // support: true or false
     autoClose: true,

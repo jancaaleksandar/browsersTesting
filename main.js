@@ -1,17 +1,17 @@
 import browser from "./browser.js";
 import getConfig from "./config.js";
+import getProfiles from "./browsers/getProfiles.js";
 
 async function main() {
-  const profileId1 = "db5ef7d3-0597-43af-a07f-30dfb1630c13";
-  const profileId2 = "59d99b89-0843-44e9-a4d0-e3ee2d6cd4be";
-  const config1 = getConfig(profileId1);
-  const config2 = getConfig(profileId2);
+  const profileIds = await getProfiles();
 
-  const number1 = 1;
-  const number2 = 2;
-  
-  // Run both browser calls concurrently
-  await Promise.all([browser(config1, number1), browser(config2, number2)]);
+  await Promise.all(
+    profileIds.map(async (profileId) => {
+      console.log("profileId: ", profileId);
+      const config = getConfig(profileId);
+      await browser(config);
+    })
+  );
 }
 
 main().then(() => console.log("Browser run"));
