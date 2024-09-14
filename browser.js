@@ -1,15 +1,24 @@
 import puppeteer from "puppeteer-core";
+import scrollToRandomHeight from "./utils/scrollToRandomHeight.js";
+import getUserAgent from "rotateuseragent";
+
 
 async function browser(config) {
+//   const userAgent = getUserAgent();
   try {
     const browser = await puppeteer.connect({
       browserWSEndpoint: config, // Passing the config
       defaultViewport: null,
+      // headers: {
+      //   // Add headers here
+      //   "User-Agent":
+      //     userAgent,
+      // },
     });
 
     const page = await browser.newPage();
     await page.goto("https://www.ticketmaster.com/", { timeout: 0 });
-    // await page.goto("https://httpbin.org/ip", { timeout: 0 });
+    // await page.goto("https://httpbin.org/anything", { timeout: 0 });
     await new Promise((resolve) => setTimeout(resolve, 6000));
     // await page.screenshot({ path: `screenshot.png`, fullPage: true });
 
@@ -27,6 +36,10 @@ async function browser(config) {
     await page.waitForSelector(
       "a.indexstyles__StyledButton-sc-83qv1q-0.jdbotF"
     );
+
+    await scrollToRandomHeight(page);
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     await page.click("a.indexstyles__StyledButton-sc-83qv1q-0.jdbotF");
 
     console.log("Button clicked!");
