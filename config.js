@@ -14,7 +14,7 @@ function getConfig(profileId) {
     config: encodeURIComponent(JSON.stringify(config)),
   });
   const browserWSEndpoint = `ws://${host}/devtool/launch/${profileId}?${query.toString()}`;
-  return browserWSEndpoint;
+  return {browserWSEndpoint, profileId};
 }
 
 export default getConfig;

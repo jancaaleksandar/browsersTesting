@@ -70,11 +70,12 @@
 import puppeteer from "puppeteer-core";
 import scrollToRandomHeight from "./utils/scrollToRandomHeight.js";
 import getUserAgent from "rotateuseragent";
+import fetchAndSave from "./utils/fetchAndSave.js";
 
 async function browser(config) {
   try {
     const browser = await puppeteer.connect({
-      browserWSEndpoint: config,
+      browserWSEndpoint: config.browserWSEndpoint,
       defaultViewport: null,
     });
 
@@ -82,30 +83,14 @@ async function browser(config) {
     await page.goto("https://httpbin.org/anything", { timeout: 0 });
 
     // Function to fetch and print the IP address
-    const fetchAndPrintIP = async () => {
-      // Reload the page to get the latest IP (if it changes)
-      await page.reload({ timeout: 0 });
-
-      // Wait for the content to load
-      await page.waitForSelector("body > pre");
-
-      // Extract the IP information
-      const ipElement = await page.$("body > pre");
-      const ipText = await page.evaluate(
-        (element) => element.textContent,
-        ipElement
-      );
-
-      // Parse and print the IP address
-      console.log(JSON.parse(ipText).origin);
-    };
+    await scrollToRandomHeight(page);
 
     // Call the function immediately
-    await fetchAndPrintIP();
+    await fetchAndSave(page, config.profileId);
 
     // Set an interval to call the function every 2 seconds
-    const ipInterval = setInterval(() => {
-      fetchAndPrintIP().catch(console.error);
+    setInterval(() => {
+      fetchAndSave(page, config.profileId).catch(console.error);
     }, 2000);
 
     // Keep the browser connection alive

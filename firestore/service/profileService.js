@@ -21,5 +21,6 @@ class ProfileService {
   }
 }
 
-// export default ProfileService;
-ProfileService.addOrUpdateProfile("44394949", 44656999); // * this is how we are going to call it (api or not)
+export default ProfileService;
+// ProfileService.addOrUpdateProfile("44394949", 44656999); // * this is how we are going to call it (api or not)
+
