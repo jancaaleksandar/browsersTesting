@@ -13,6 +13,8 @@
   "dependencies": {
     "@zenrows/browser-sdk": "github:zenrows/browser-sdk",
     "dotenv": "^16.4.5",
+    "firebase": "^10.13.1",
+    "firebase-admin": "^12.5.0",
     "node-fetch": "^3.3.2",
     "puppeteer-core": "^23.2.2",
     "rotateuseragent": "^1.0.1"
