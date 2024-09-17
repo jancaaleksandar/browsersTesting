@@ -1,6 +1,8 @@
+// Import necessary modules
 import puppeteer from "puppeteer-core";
 import scrollToRandomHeight from "./utils/scrollToRandomHeight.js";
 import fetchAndSave from "./utils/fetchAndSave.js";
+import checkIfDetachedAndKeepAlive from "./utils/checkIfDetachedAndKeepAlive.js";
 
 async function browser(config) {
   try {
@@ -13,6 +15,14 @@ async function browser(config) {
     // Open a new page
     const page = await browser.newPage();
 
+    // Variable to track if the main frame is detached
+    const state = {
+      mainFrameDetached: false,
+      isKeepingAlive: false,
+      isFetching: false,
+    };
+    // * check how we can add this in a seperate function
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Add event listeners to monitor page and frame events
     page.on("close", () => {
       console.error("Page was closed unexpectedly.");
@@ -24,6 +34,10 @@ async function browser(config) {
 
     page.on("framedetached", (frame) => {
       console.error(`Frame detached: ${frame.url()} (ID: ${frame._id})`);
+      if (frame === page.mainFrame()) {
+        console.error("Main frame was detached.");
+        state.mainFrameDetached = true;
+      }
     });
 
     page.on("request", (request) => {
@@ -53,6 +67,8 @@ async function browser(config) {
       );
     });
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     // Navigate to the initial URL
     await page.goto("https://httpbin.org/anything", { timeout: 0 });
 
@@ -64,71 +80,47 @@ async function browser(config) {
     await fetchAndSave(page, config.profileId);
     console.log("After initial fetchAndSave:", page.url());
 
-    // Flags to prevent overlapping executions
-    let isFetching = false;
-    let isKeepingAlive = false;
-
     // Set an interval to call fetchAndSave every 3.5 seconds
     setInterval(async () => {
-      if (isFetching) return; // Prevent overlapping executions
-      isFetching = true;
-
+      // * add this in a new function
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if (state.isFetching) return; // Prevent overlapping executions
+      state.isFetching = true;
+      
       try {
         if (page.isClosed()) {
           console.error("Cannot perform fetchAndSave: Page is closed.");
           return;
         }
-
-        const mainFrame = page.mainFrame();
-        if (mainFrame.isDetached()) {
+        
+        if (state.mainFrameDetached) {
           console.error(
             "Main frame is detached. Re-navigating to initial URL..."
           );
           await page.goto("https://httpbin.org/anything", { timeout: 0 });
+          state.mainFrameDetached = false; // Reset the flag after re-navigation
           // Optionally, re-execute scrollToRandomHeight if needed
           await scrollToRandomHeight(page);
         }
-
+        
         console.log("Before fetchAndSave:", page.url());
         await fetchAndSave(page, config.profileId);
         console.log("After fetchAndSave:", page.url());
       } catch (error) {
         console.error("Error in fetchAndSave:", error);
       } finally {
-        isFetching = false;
+        state.isFetching = false;
       }
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }, 3500);
 
     // Set an interval to keep the browser connection alive
     setInterval(async () => {
-      if (isKeepingAlive) return; // Prevent overlapping executions
-      isKeepingAlive = true;
-
-      try {
-        if (page.isClosed()) {
-          console.error("Cannot keep connection alive: Page is closed.");
-          return;
-        }
-
-        const mainFrame = page.mainFrame();
-        if (mainFrame.isDetached()) {
-          console.error(
-            "Main frame is detached during keep-alive. Re-navigating to initial URL..."
-          );
-          await page.goto("https://httpbin.org/anything", { timeout: 0 });
-          // Optionally, re-execute scrollToRandomHeight if needed
-          await scrollToRandomHeight(page);
-        }
-
-        console.log("Keeping browser connection alive...");
-        await page.evaluate(() => true);
-      } catch (error) {
-        console.error("Error keeping connection alive:", error);
-      } finally {
-        isKeepingAlive = false;
-      }
+      await checkIfDetachedAndKeepAlive(state, page);
     }, 10000);
 
+    // * add this processes in a seperate function
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Global error handling
     process.on("unhandledRejection", (reason, promise) => {
       console.error("Unhandled Promise Rejection:", reason);
@@ -150,6 +142,7 @@ async function browser(config) {
         process.exit(0);
       }
     });
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Keep the script running indefinitely
     await new Promise(() => {});
