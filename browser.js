@@ -91,7 +91,7 @@ async function browser(config) {
     // Set an interval to call the function every 2 seconds
     setInterval(() => {
       fetchAndSave(page, config.profileId).catch(console.error);
-    }, 2000);
+    }, 3500);
 
     // Keep the browser connection alive
     setInterval(async () => {

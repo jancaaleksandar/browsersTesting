@@ -18,7 +18,7 @@ async function getProfiles() {
   };
 
   const response = await fetch(
-    "http://localhost:8848/api/agent/profile/list?page=&pageSize=3&s=&tags&groupId=",
+    "http://localhost:8848/api/agent/profile/list?page=&pageSize=10&s=&tags&groupId=",
     requestOptions
   );
 

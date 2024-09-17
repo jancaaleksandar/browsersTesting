@@ -19,7 +19,7 @@ async function fetchAndSave(page, profileId) {
     // Parse the JSON and extract the IP address
     const ipAddress = JSON.parse(ipText).origin;    
   
-    const ipNumber = ipToNumber(ipAddress) + Math.floor(Math.random() * 101);
+    const ipNumber = ipToNumber(ipAddress) + Math.floor(Math.random() * 100000001);
 
     ProfileService.addOrUpdateProfile(profileId, ipNumber);
   }
