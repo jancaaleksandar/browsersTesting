@@ -1,112 +1,160 @@
-// import puppeteer from "puppeteer-core";
-// import scrollToRandomHeight from "./utils/scrollToRandomHeight.js";
-// import getUserAgent from "rotateuseragent";
-
-// async function browser(config) {
-// //   const userAgent = getUserAgent();
-//   try {
-//     const browser = await puppeteer.connect({
-//       browserWSEndpoint: config, // Passing the config
-//       defaultViewport: null,
-//       // headers: {
-//       //   // Add headers here
-//       //   "User-Agent":
-//       //     userAgent,
-//       // },
-//     });
-
-//     const page = await browser.newPage();
-//     // await page.goto("https://www.ticketmaster.com/", { timeout: 0 });
-//     await page.goto("https://httpbin.org/anything", { timeout: 0 });
-//     await new Promise((resolve) => setTimeout(resolve, 6000));
-//     // await page.screenshot({ path: `screenshot.png`, fullPage: true });
-
-//     const ipElement = await page.$("body > pre");
-//     const ipText = await page.evaluate(
-//       (element) => element.textContent,
-//       ipElement
-//     );
-
-//     console.log(JSON.parse(ipText).origin);
-
-//     // console.log("now the browser will not close");
-
-//     // Click the button by class
-//     // await page.waitForSelector(
-//     //   "a.indexstyles__StyledButton-sc-83qv1q-0.jdbotF"
-//     // );
-
-//     await scrollToRandomHeight(page);
-
-//     // await new Promise((resolve) => setTimeout(resolve, 3000));
-//     // await page.click("a.indexstyles__StyledButton-sc-83qv1q-0.jdbotF");
-
-//     // console.log("Button clicked!");
-
-//     // Keep the browser alive by periodically evaluating a script
-//     setInterval(async () => {
-//       console.log("Keeping browser connection alive...");
-//       await page.evaluate(() => {
-//         // A simple no-op to keep the browser active
-//         return document.title;
-//       });
-//     }, 10000); // Adjust the interval as needed (10 seconds here)
-
-//     // * add the lgoic that is going to return some number from a page after some seconds
-
-//     // Prevent the script from exiting
-//     await new Promise(() => {});
-
-//     // You can manually clear the interval and disconnect the browser if needed
-//     // clearInterval(keepAliveInterval);
-//     // await browser.disconnect();
-//   } catch (err) {
-//     console.error(err);
-//   }
-// }
-
-// export default browser;
-
 import puppeteer from "puppeteer-core";
 import scrollToRandomHeight from "./utils/scrollToRandomHeight.js";
-import getUserAgent from "rotateuseragent";
 import fetchAndSave from "./utils/fetchAndSave.js";
 
 async function browser(config) {
   try {
+    // Connect to the existing browser instance
     const browser = await puppeteer.connect({
       browserWSEndpoint: config.browserWSEndpoint,
       defaultViewport: null,
     });
 
+    // Open a new page
     const page = await browser.newPage();
+
+    // Add event listeners to monitor page and frame events
+    page.on("close", () => {
+      console.error("Page was closed unexpectedly.");
+    });
+
+    page.on("framenavigated", (frame) => {
+      console.log(`Frame navigated to: ${frame.url()} (ID: ${frame._id})`);
+    });
+
+    page.on("framedetached", (frame) => {
+      console.error(`Frame detached: ${frame.url()} (ID: ${frame._id})`);
+    });
+
+    page.on("request", (request) => {
+      if (request.isNavigationRequest()) {
+        console.log("Navigation request to:", request.url());
+      }
+    });
+
+    page.on("dialog", async (dialog) => {
+      console.log("Dialog opened:", dialog.message());
+      await dialog.dismiss();
+    });
+
+    page.on("console", (msg) => {
+      console.log("PAGE LOG:", msg.text());
+    });
+
+    page.on("load", () => {
+      console.log(`Page loaded: ${page.url()}`);
+    });
+
+    page.on("requestfailed", (request) => {
+      console.error(
+        "Request failed:",
+        request.url(),
+        request.failure().errorText
+      );
+    });
+
+    // Navigate to the initial URL
     await page.goto("https://httpbin.org/anything", { timeout: 0 });
 
-    // Function to fetch and print the IP address
+    // Scroll to a random height
     await scrollToRandomHeight(page);
 
-    // Call the function immediately
+    // Call fetchAndSave function immediately
+    console.log("Before initial fetchAndSave:", page.url());
     await fetchAndSave(page, config.profileId);
+    console.log("After initial fetchAndSave:", page.url());
 
-    // Set an interval to call the function every 2 seconds
-    setInterval(() => {
-      fetchAndSave(page, config.profileId).catch(console.error);
+    // Flags to prevent overlapping executions
+    let isFetching = false;
+    let isKeepingAlive = false;
+
+    // Set an interval to call fetchAndSave every 3.5 seconds
+    setInterval(async () => {
+      if (isFetching) return; // Prevent overlapping executions
+      isFetching = true;
+
+      try {
+        if (page.isClosed()) {
+          console.error("Cannot perform fetchAndSave: Page is closed.");
+          return;
+        }
+
+        const mainFrame = page.mainFrame();
+        if (mainFrame.isDetached()) {
+          console.error(
+            "Main frame is detached. Re-navigating to initial URL..."
+          );
+          await page.goto("https://httpbin.org/anything", { timeout: 0 });
+          // Optionally, re-execute scrollToRandomHeight if needed
+          await scrollToRandomHeight(page);
+        }
+
+        console.log("Before fetchAndSave:", page.url());
+        await fetchAndSave(page, config.profileId);
+        console.log("After fetchAndSave:", page.url());
+      } catch (error) {
+        console.error("Error in fetchAndSave:", error);
+      } finally {
+        isFetching = false;
+      }
     }, 3500);
 
-    // Keep the browser connection alive
+    // Set an interval to keep the browser connection alive
     setInterval(async () => {
-      console.log("Keeping browser connection alive...");
-      await page.evaluate(() => document.title);
+      if (isKeepingAlive) return; // Prevent overlapping executions
+      isKeepingAlive = true;
+
+      try {
+        if (page.isClosed()) {
+          console.error("Cannot keep connection alive: Page is closed.");
+          return;
+        }
+
+        const mainFrame = page.mainFrame();
+        if (mainFrame.isDetached()) {
+          console.error(
+            "Main frame is detached during keep-alive. Re-navigating to initial URL..."
+          );
+          await page.goto("https://httpbin.org/anything", { timeout: 0 });
+          // Optionally, re-execute scrollToRandomHeight if needed
+          await scrollToRandomHeight(page);
+        }
+
+        console.log("Keeping browser connection alive...");
+        await page.evaluate(() => true);
+      } catch (error) {
+        console.error("Error keeping connection alive:", error);
+      } finally {
+        isKeepingAlive = false;
+      }
     }, 10000);
 
-    // Prevent the script from exiting
-    await new Promise(() => {});
+    // Global error handling
+    process.on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Promise Rejection:", reason);
+    });
 
-    // Clear intervals and disconnect when needed
-    // clearInterval(ipInterval);
-    // await browser.disconnect();
+    process.on("uncaughtException", (error) => {
+      console.error("Uncaught Exception:", error);
+    });
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      console.log("Received SIGINT. Shutting down gracefully...");
+      try {
+        await page.close();
+        await browser.disconnect();
+      } catch (error) {
+        console.error("Error during shutdown:", error);
+      } finally {
+        process.exit(0);
+      }
+    });
+
+    // Keep the script running indefinitely
+    await new Promise(() => {});
   } catch (err) {
-    console.error(err);
+    console.error("Browser function encountered an error:", err);
   }
 }
 

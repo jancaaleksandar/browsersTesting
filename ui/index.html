@@ -8,56 +8,82 @@
       body {
         font-family: Arial, sans-serif;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         height: 100vh;
         margin: 0;
+        padding: 0;
       }
 
       h1 {
+        margin: 20px 0;
         text-align: center;
       }
 
-      #profileBoard {
-        border-collapse: collapse;
-        margin: 20px auto;
-        width: 60%;
-        border: 1px solid #ddd;
+      .container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        max-width: 800px;
       }
 
-      #profileBoard th,
-      #profileBoard td {
+      .table-container {
+        flex-grow: 1;
+        overflow-y: auto; /* Allows scrolling */
+        border: 1px solid #ddd;
+        margin: 0 20px;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      th,
+      td {
         padding: 12px 15px;
         border: 1px solid #ddd;
         text-align: center;
       }
 
-      #profileBoard th {
+      th {
         background-color: #f2f2f2;
         font-weight: bold;
       }
 
-      #profileBoard tr:nth-child(even) {
+      tr:nth-child(even) {
         background-color: #f9f9f9;
       }
 
-      #profileBoard tr:hover {
+      tr:hover {
         background-color: #f1f1f1;
+      }
+
+      /* Adjust the height of the table header to be fixed at the top */
+      thead {
+        position: sticky;
+        top: 0;
+        background-color: #f2f2f2;
+        z-index: 1;
       }
     </style>
   </head>
   <body>
-    <div>
+    <div class="container">
       <h1>Profile Queue Board</h1>
-      <table id="profileBoard">
-        <thead>
-          <tr>
-            <th>Profile ID</th>
-            <th>Queue Number</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-container">
+        <table id="profileBoard">
+          <thead>
+            <tr>
+              <th>Profile ID</th>
+              <th>Queue Number</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <script>
