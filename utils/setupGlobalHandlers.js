@@ -1,6 +1,11 @@
 // utils/setupGlobalHandlers.js
 
-function setupGlobalHandlers(page, browser) {
+let handlersRegistered = false;
+
+function setupGlobalHandlers() {
+  if (handlersRegistered) return; // Prevent multiple registrations
+  handlersRegistered = true;
+
   // Global error handling
   process.on("unhandledRejection", (reason, promise) => {
     console.error("Unhandled Promise Rejection:", reason);
@@ -13,15 +18,9 @@ function setupGlobalHandlers(page, browser) {
   // Graceful shutdown
   process.on("SIGINT", async () => {
     console.log("Received SIGINT. Shutting down gracefully...");
-    try {
-      await page.close();
-      await browser.disconnect();
-    } catch (error) {
-      console.error("Error during shutdown:", error);
-    } finally {
-      process.exit(0);
-    }
+    process.exit(0);
   });
 }
+
 
 export default setupGlobalHandlers;

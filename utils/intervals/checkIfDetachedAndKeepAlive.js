@@ -1,4 +1,4 @@
-import scrollToRandomHeight from "./scrollToRandomHeight.js";
+import scrollToRandomHeight from "../scrollToRandomHeight.js";
 
 async function checkIfDetachedAndKeepAlive(state, page) {
   if (state.isKeepingAlive) return; // Prevent overlapping executions
@@ -7,7 +7,7 @@ async function checkIfDetachedAndKeepAlive(state, page) {
   try {
     if (page.isClosed()) {
       console.error("Cannot keep connection alive: Page is closed.");
-      return;
+      throw new Error("Page is closed."); // Rethrow to propagate the error
     }
 
     if (state.mainFrameDetached) {
@@ -16,7 +16,6 @@ async function checkIfDetachedAndKeepAlive(state, page) {
       );
       await page.goto("https://httpbin.org/anything", { timeout: 0 });
       state.mainFrameDetached = false; // Reset the flag after re-navigation
-      // Optionally, re-execute scrollToRandomHeight if needed
       await scrollToRandomHeight(page);
     }
 
@@ -24,9 +23,11 @@ async function checkIfDetachedAndKeepAlive(state, page) {
     await page.evaluate(() => true);
   } catch (error) {
     console.error("Error keeping connection alive:", error);
+    throw error; // Rethrow the error to propagate it up
   } finally {
     state.isKeepingAlive = false;
   }
 }
+
 
 export default checkIfDetachedAndKeepAlive;

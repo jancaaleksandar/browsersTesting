@@ -3,7 +3,7 @@ import getConfig from "./config.js";
 import getProfiles from "./browsers/getProfiles.js";
 
 async function main() {
-  const profileIds = await getProfiles();
+  const profileIds = await getProfiles(); // * gets all the profiles
 
   await Promise.all(
     profileIds.map(async (profileId) => {

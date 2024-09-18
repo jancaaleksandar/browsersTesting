@@ -1,7 +1,7 @@
 // utils/performFetchAndSave.js
 
-import scrollToRandomHeight from "./scrollToRandomHeight.js";
-import fetchAndSave from "./fetchAndSave.js"; // Adjust the import path as needed
+import scrollToRandomHeight from "../scrollToRandomHeight.js";
+import fetchAndSave from "../fetchAndSave.js"; // Adjust the import path as needed
 
 async function performFetchAndSave(state, page, config) {
   if (state.isFetching) return; // Prevent overlapping executions
