@@ -9,7 +9,7 @@ class ProfileService {
       },
     };
 
-    console.log(profileData);
+    console.log("Profile data insde the ProfileService: ", profileData);
 
     try {
       ProfileDao.addOrUpdateProfile(profileData);
@@ -23,4 +23,3 @@ class ProfileService {
 
 export default ProfileService;
 // ProfileService.addOrUpdateProfile("44394949", 44656999); // * this is how we are going to call it (api or not)
-

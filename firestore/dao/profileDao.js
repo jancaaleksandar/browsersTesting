@@ -13,7 +13,7 @@ class ProfileDao {
   static addOrUpdateProfile(profileData) {
     const allProfilesRef = db.collection("profiles").doc("all_profiles");
 
-    console.log(profileData);
+    console.log("Profile data insde the ProfileDao: ", profileData);
 
     allProfilesRef.set(profileData, { merge: true }); /// * merge true means if it exists then write it in the
   }

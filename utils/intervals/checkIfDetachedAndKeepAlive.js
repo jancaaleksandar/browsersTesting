@@ -15,6 +15,7 @@ async function checkIfDetachedAndKeepAlive(state, page) {
         "Main frame is detached during keep-alive. Re-navigating to initial URL..."
       );
       await page.goto("https://httpbin.org/anything", { timeout: 0 });
+      await page.waitForNavigation({ waitUntil: "networkidle0" });
       state.mainFrameDetached = false; // Reset the flag after re-navigation
       await scrollToRandomHeight(page);
     }
@@ -28,6 +29,5 @@ async function checkIfDetachedAndKeepAlive(state, page) {
     state.isKeepingAlive = false;
   }
 }
-
 
 export default checkIfDetachedAndKeepAlive;

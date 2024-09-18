@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
 import "dotenv/config";
-import fs from "fs";
 
 const apiKey = process.env.NST_API_KEY;
 
@@ -18,7 +17,7 @@ async function getProfiles() {
   };
 
   const response = await fetch(
-    "http://localhost:8848/api/agent/profile/list?page=&pageSize=5&s=&tags&groupId=", // * pageSize will be the number of profiles
+    "http://localhost:8848/api/agent/profile/list?page=&pageSize=1&s=&tags&groupId=", // * pageSize will be the number of profiles
     requestOptions
   );
 
@@ -31,5 +30,5 @@ async function getProfiles() {
 
   return profileIds;
 }
-// getProfiles();
+
 export default getProfiles;

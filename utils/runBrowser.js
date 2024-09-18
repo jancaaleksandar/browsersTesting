@@ -35,13 +35,16 @@ async function runBrowser(config) {
     // Navigate to the initial URL
     await page.goto("https://httpbin.org/anything", { timeout: 0 });
 
+    // * wait for this
+    await page.waitForSelector("body > pre", { waitUntil: "networkidle0" });
+
     // Scroll to a random height
     await scrollToRandomHeight(page);
 
     // Call fetchAndSave function immediately
-    console.log("Before initial fetchAndSave:", page.url());
+    // console.log("Before initial fetchAndSave:", page.url());
     await fetchAndSave(page, config.profileId);
-    console.log("After initial fetchAndSave:", page.url());
+    // console.log("After initial fetchAndSave:", page.url());
 
     // Start intervals and handle errors
     await startIntervals(page, state, config);

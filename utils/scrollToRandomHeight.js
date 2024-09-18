@@ -1,4 +1,5 @@
 async function scrollToRandomHeight(page) {
+  console.log("Scrolling to random height...");
   const height = await page.evaluate(() => document.body.scrollHeight);
   const randomHeight = Math.floor(Math.random() * height);
   await page.evaluate((height) => {
