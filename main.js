@@ -12,6 +12,6 @@ async function main() {
       await browser(config);
     })
   );
-}
+} 
 
 main().then(() => console.log("Browser run"));
