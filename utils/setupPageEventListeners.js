@@ -16,6 +16,14 @@ function setupPageEventListeners(page, state) {
     }
   });
 
+  page.on("pageerror", (err) => {
+    console.error("Page error occurred:", err);
+  });
+
+  page.on("requestfinished", (request) => {
+    console.log("Request finished:", request.url());
+  });
+
   page.on("request", (request) => {
     if (request.isNavigationRequest()) {
       console.log("Navigation request to:", request.url());

@@ -19,7 +19,7 @@ async function startIntervals(page, state, config) {
       clearInterval(keepAliveInterval);
       throw err; // Rethrow to propagate the error
     }
-  }, 15000); // Run every 15 seconds (adjust as necessary)
+  }, 4000); 
 
   // Run keep-alive interval
   const keepAliveInterval = setInterval(async () => {
